@@ -47,9 +47,10 @@
  * See below for an explanation of the different formats. One of these needs
  * to be defined.
  */
-#define POLYGON_FORMAT_FULL
+//#define POLYGON_FORMAT_FULL
 //#define POLYGON_FORMAT_PAIRS
 //#define POLYGON_FORMAT_OPTIMAL
+#define POLYGON_FORMAT_SEQUENCE
 
 using namespace Lua;
 using namespace Tiled;
@@ -502,6 +503,18 @@ void LuaPlugin::writeMapObject(LuaTableWriter &writer,
         foreach (const QPointF &point, polygon)
             writer.writeValue(point.y());
         writer.writeEndTable();
+        writer.setSuppressNewlines(false);
+#elif defined(POLYGON_FORMAT_SEQUENCE)
+        /* Writing it out sequence, like this {x0, y0, x1, y1...}.
+         * x = { 1, 2, 3, ... }
+         */
+        //writer.writeStartTable();
+        writer.setSuppressNewlines(true);
+        foreach (const QPointF &point, polygon) {
+            writer.writeValue(point.x());
+            writer.writeValue(point.y());
+        }
+        //writer.writeEndTable();
         writer.setSuppressNewlines(false);
 #endif
 
