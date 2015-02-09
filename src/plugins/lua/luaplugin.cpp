@@ -506,15 +506,13 @@ void LuaPlugin::writeMapObject(LuaTableWriter &writer,
         writer.setSuppressNewlines(false);
 #elif defined(POLYGON_FORMAT_SEQUENCE)
         /* Writing it out sequence, like this {x0, y0, x1, y1...}.
-         * x = { 1, 2, 3, ... }
+         * { 2, 0, 1, 6... }
          */
-        //writer.writeStartTable();
         writer.setSuppressNewlines(true);
         foreach (const QPointF &point, polygon) {
             writer.writeValue(point.x());
             writer.writeValue(point.y());
         }
-        //writer.writeEndTable();
         writer.setSuppressNewlines(false);
 #endif
 
