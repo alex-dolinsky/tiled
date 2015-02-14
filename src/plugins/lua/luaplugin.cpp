@@ -50,7 +50,10 @@
 //#define POLYGON_FORMAT_FULL
 //#define POLYGON_FORMAT_PAIRS
 //#define POLYGON_FORMAT_OPTIMAL
+
+// MOAI friendly
 #define POLYGON_FORMAT_SEQUENCE
+#define MOAI_LUA_DATA_FORMAT
 
 using namespace Lua;
 using namespace Tiled;
@@ -340,11 +343,23 @@ void LuaPlugin::writeTileLayer(LuaTableWriter &writer,
     writer.writeKeyAndValue("encoding", "lua");
     writer.writeStartTable("data");
     for (int y = 0; y < tileLayer->height(); ++y) {
-        if (y > 0)
+        if (y > 0) {
             writer.prepareNewLine();
+            #ifdef MOAI_LUA_DATA_FORMAT
+                writer.setSuppressNewlines(true);
+                writer.writeStartTable();
+            #endif
+        }
 
         for (int x = 0; x < tileLayer->width(); ++x)
+            #ifdef MOAI_LUA_DATA_FORMAT
+                writer.writeValue(tileLayer->height() - y)
+            #endif
             writer.writeValue(mGidMapper.cellToGid(tileLayer->cellAt(x, y)));
+        #ifdef MOAI_LUA_DATA_FORMAT
+            writer.writeEndTable();
+            writer.setSuppressNewlines(false);
+        #endif
     }
     writer.writeEndTable();
 
