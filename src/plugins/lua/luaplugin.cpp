@@ -351,11 +351,12 @@ void LuaPlugin::writeTileLayer(LuaTableWriter &writer,
             #endif
         }
 
-        for (int x = 0; x < tileLayer->width(); ++x)
+        for (int x = 0; x < tileLayer->width(); ++x) {
             #ifdef MOAI_LUA_DATA_FORMAT
                 writer.writeValue(tileLayer->height() - y)
             #endif
             writer.writeValue(mGidMapper.cellToGid(tileLayer->cellAt(x, y)));
+        }
         #ifdef MOAI_LUA_DATA_FORMAT
             writer.writeEndTable();
             writer.setSuppressNewlines(false);
