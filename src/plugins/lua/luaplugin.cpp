@@ -49,7 +49,7 @@
  */
 //#define POLYGON_FORMAT_FULL
 //#define POLYGON_FORMAT_PAIRS
-//#define POLYGON_FORMAT_OPTIMAL
+//define POLYGON_FORMAT_OPTIMAL
 
 // MOAI friendly
 #define POLYGON_FORMAT_SEQUENCE
@@ -343,21 +343,23 @@ void LuaPlugin::writeTileLayer(LuaTableWriter &writer,
     writer.writeKeyAndValue("encoding", "lua");
     writer.writeStartTable("data");
     for (int y = 0; y < tileLayer->height(); ++y) {
+        #if !defined(MOAI_LUA_DATA_FORMAT)
         if (y > 0) {
             writer.prepareNewLine();
-            #ifdef MOAI_LUA_DATA_FORMAT
-                writer.setSuppressNewlines(true);
-                writer.writeStartTable();
-            #endif
         }
-
+        #endif
+        #if defined(MOAI_LUA_DATA_FORMAT)
+            writer.prepareNewLine();
+            writer.setSuppressNewlines(true);
+            writer.writeStartTable();
+        #endif
         for (int x = 0; x < tileLayer->width(); ++x) {
-            #ifdef MOAI_LUA_DATA_FORMAT
-                writer.writeValue(tileLayer->height() - y)
+            #if defined(MOAI_LUA_DATA_FORMAT)
+                writer.writeValue(tileLayer->height() - y);
             #endif
             writer.writeValue(mGidMapper.cellToGid(tileLayer->cellAt(x, y)));
         }
-        #ifdef MOAI_LUA_DATA_FORMAT
+        #if defined(MOAI_LUA_DATA_FORMAT)
             writer.writeEndTable();
             writer.setSuppressNewlines(false);
         #endif
@@ -526,13 +528,15 @@ void LuaPlugin::writeMapObject(LuaTableWriter &writer,
          */
         writer.setSuppressNewlines(true);
         foreach (const QPointF &point, polygon) {
-            writer.writeValue(point.x());
-            writer.writeValue(point.y());
+            writer.writeValue(unsigned int(point.x()));
+            writer.writeValue(unsigned int(point.y()));
         }
-        writer.setSuppressNewlines(false);
 #endif
 
         writer.writeEndTable();
+        #if defined(POLYGON_FORMAT_SEQUENCE)
+            writer.setSuppressNewlines(false);
+        #endif
     }
 
     writeProperties(writer, mapObject->properties());
