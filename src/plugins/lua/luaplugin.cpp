@@ -343,20 +343,17 @@ void LuaPlugin::writeTileLayer(LuaTableWriter &writer,
     writer.writeKeyAndValue("encoding", "lua");
     writer.writeStartTable("data");
     for (int y = 0; y < tileLayer->height(); ++y) {
-        #if !defined(MOAI_LUA_DATA_FORMAT)
-        if (y > 0) {
-            writer.prepareNewLine();
-        }
-        #endif
         #if defined(MOAI_LUA_DATA_FORMAT)
             writer.prepareNewLine();
             writer.setSuppressNewlines(true);
             writer.writeStartTable();
+            writer.writeValue(tileLayer->height() - y);
+        #elif
+            if (y > 0) {
+                writer.prepareNewLine();
+            }
         #endif
         for (int x = 0; x < tileLayer->width(); ++x) {
-            #if defined(MOAI_LUA_DATA_FORMAT)
-                writer.writeValue(tileLayer->height() - y);
-            #endif
             writer.writeValue(mGidMapper.cellToGid(tileLayer->cellAt(x, y)));
         }
         #if defined(MOAI_LUA_DATA_FORMAT)
