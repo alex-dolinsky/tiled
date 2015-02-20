@@ -551,7 +551,7 @@ void LuaPlugin::writeMapObject(LuaTableWriter &writer,
         writer.writeEndTable();
         writer.setSuppressNewlines(false);
 #elif defined(POLYGON_FORMAT_SEQUENCE)
-        /* Writing it out sequence, like this {x0, y0, x1, y1...}.
+        /* Writing it out in sequence like this: {x0, y0, x1, y1...}.
          * { 2, 0, 1, 6... }
          */
         writer.setSuppressNewlines(true);
