@@ -49,11 +49,13 @@
  */
 //#define POLYGON_FORMAT_FULL
 //#define POLYGON_FORMAT_PAIRS
-//define POLYGON_FORMAT_OPTIMAL
+//#define POLYGON_FORMAT_OPTIMAL
 
 // MOAI friendly
 #define POLYGON_FORMAT_SEQUENCE
 #define MOAI_LUA_DATA_FORMAT
+#define FIRST_IMAGE
+//#define ALL_IMAGES
 
 using namespace Lua;
 using namespace Tiled;
@@ -232,10 +234,18 @@ void LuaPlugin::writeTileset(LuaTableWriter &writer, const Tileset *tileset,
     writer.writeKeyAndValue("margin", tileset->margin());
 
     if (!tileset->imageSource().isEmpty()) {
-        const QString rel = mMapDir.relativeFilePath(tileset->imageSource());
+        #if defined(MOAI_LUA_DATA_FORMAT)
+            const QString rel = mMapDir.relativeFilePath(tileset->imageSource()).split("/").takeLast();
+        #else
+            const QString rel = mMapDir.relativeFilePath(tileset->imageSource());
+        #endif
         writer.writeKeyAndValue("image", rel);
         writer.writeKeyAndValue("imagewidth", tileset->imageWidth());
         writer.writeKeyAndValue("imageheight", tileset->imageHeight());
+        #if defined(MOAI_LUA_DATA_FORMAT)
+            writer.writeKeyAndValue("deckwidth", tileset->imageWidth() / tileset->tileWidth());
+            writer.writeKeyAndValue("deckheight", tileset->imageHeight() / tileset->tileHeight());
+        #endif
     }
 
     if (tileset->transparentColor().isValid()) {
@@ -332,6 +342,27 @@ void LuaPlugin::writeTileLayer(LuaTableWriter &writer,
 
     writer.writeKeyAndValue("type", "tilelayer");
     writer.writeKeyAndValue("name", tileLayer->name());
+    #if defined(MOAI_LUA_DATA_FORMAT)
+        #if defined(FIRST_IMAGE)
+            #define ZERO 0
+            #define ONE 1
+            const QList<Tileset *> usedTilelist = tileLayer->usedTilesets().values();
+            if (!usedTilelist.isEmpty() && usedTilelist.size() == ONE) {
+                const QString image = mMapDir.relativeFilePath(usedTilelist.at(ZERO)->imageSource()).split("/").takeLast();
+                writer.writeKeyAndValue("image", image);
+            }
+        #endif
+        #if defined(ALL_IMAGES)
+            writer.writeStartTable("images");
+            const QSet<Tileset *> usedTilesets = tileLayer->usedTilesets();
+            if (!usedTilesets.empty())
+                foreach (const Tileset * tileset, usedTilesets) {
+                    const QString fileId = mMapDir.relativeFilePath(tileset->imageSource()).split("/").takeLast();
+                    writer.writeValue(fileId);
+                }
+            writer.writeEndTable();
+        #endif
+    #endif
     writer.writeKeyAndValue("x", tileLayer->x());
     writer.writeKeyAndValue("y", tileLayer->y());
     writer.writeKeyAndValue("width", tileLayer->width());
