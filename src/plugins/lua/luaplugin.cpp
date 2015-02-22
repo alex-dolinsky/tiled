@@ -218,7 +218,10 @@ void LuaPlugin::writeTileset(LuaTableWriter &writer, const Tileset *tileset,
     writer.writeStartTable();
 
     writer.writeKeyAndValue("name", tileset->name());
-    writer.writeKeyAndValue("firstgid", firstGid);
+    
+    #if !defined(MOAI_LUA_DATA_FORMAT)
+        writer.writeKeyAndValue("firstgid", firstGid);
+    #endif
 
     if (!tileset->fileName().isEmpty()) {
         const QString rel = mMapDir.relativeFilePath(tileset->fileName());
@@ -385,7 +388,11 @@ void LuaPlugin::writeTileLayer(LuaTableWriter &writer,
             }
         #endif
         for (int x = 0; x < tileLayer->width(); ++x) {
-            writer.writeValue(mGidMapper.cellToGid(tileLayer->cellAt(x, y)));
+            #if defined(MOAI_LUA_DATA_FORMAT)
+                writer.writeValue(mGidMapper.cellToGid(tileLayer->cellAt(x, y), true));
+            #else
+                writer.writeValue(mGidMapper.cellToGid(tileLayer->cellAt(x, y)));
+            #endif
         }
         #if defined(MOAI_LUA_DATA_FORMAT)
             writer.writeEndTable();

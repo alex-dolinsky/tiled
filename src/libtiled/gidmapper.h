@@ -78,7 +78,7 @@ public:
      * Returns the global tile ID for the given \a cell. Returns 0 when the
      * cell is empty or when its tileset isn't known.
      */
-    unsigned cellToGid(const Cell &cell) const;
+    unsigned cellToGid(const Cell &cell, bool overrideFirstGid = false) const;
 
     /**
      * This sets the original tileset width. In case the image size has
