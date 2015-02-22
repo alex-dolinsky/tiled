@@ -96,7 +96,7 @@ Cell GidMapper::gidToCell(unsigned gid, bool &ok) const
     return result;
 }
 
-unsigned GidMapper::cellToGid(const Cell &cell, bool overrideFirstGid) const
+unsigned GidMapper::cellToGid(const Cell &cell) const
 {
 #define ONE 1
     if (cell.isEmpty())
@@ -104,21 +104,35 @@ unsigned GidMapper::cellToGid(const Cell &cell, bool overrideFirstGid) const
 
     const Tileset *tileset = cell.tile->tileset();
 
+    // Find the first GID for the tileset
+    QMap<unsigned, Tileset*>::const_iterator i = mFirstGidToTileset.begin();
+    QMap<unsigned, Tileset*>::const_iterator i_end = mFirstGidToTileset.end();
+    while (i != i_end && i.value() != tileset)
+        ++i;
+
+    if (i == i_end) // tileset not found
+        return 0;
+
+   unsigned gid = i.key() + cell.tile->id();
+
+    if (cell.flippedHorizontally)
+        gid |= FlippedHorizontallyFlag;
+    if (cell.flippedVertically)
+        gid |= FlippedVerticallyFlag;
+    if (cell.flippedAntiDiagonally)
+        gid |= FlippedAntiDiagonallyFlag;
+
+    return gid;
+}
+
+unsigned GidMapper::cellToGidOrigin(const Cell &cell) const
+{
+#define ONE 1
+    if (cell.isEmpty())
+        return 0;
+
     unsigned gid = ONE;
-    if (overrideFirstGid) {
-        gid += cell.tile->id();
-    } else {
-        // Find the first GID for the tileset
-        QMap<unsigned, Tileset*>::const_iterator i = mFirstGidToTileset.begin();
-        QMap<unsigned, Tileset*>::const_iterator i_end = mFirstGidToTileset.end();
-        while (i != i_end && i.value() != tileset)
-            ++i;
-
-        if (i == i_end) // tileset not found
-            return 0;
-
-        gid = i.key() + cell.tile->id();
-    }
+    gid += cell.tile->id();
 
     if (cell.flippedHorizontally)
         gid |= FlippedHorizontallyFlag;

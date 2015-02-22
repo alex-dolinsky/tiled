@@ -389,7 +389,7 @@ void LuaPlugin::writeTileLayer(LuaTableWriter &writer,
         #endif
         for (int x = 0; x < tileLayer->width(); ++x) {
             #if defined(MOAI_LUA_DATA_FORMAT)
-                writer.writeValue(mGidMapper.cellToGid(tileLayer->cellAt(x, y), true));
+                writer.writeValue(mGidMapper.cellToGidOrigin(tileLayer->cellAt(x, y)));
             #else
                 writer.writeValue(mGidMapper.cellToGid(tileLayer->cellAt(x, y)));
             #endif
