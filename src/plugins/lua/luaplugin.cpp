@@ -55,7 +55,9 @@
 #define POLYGON_FORMAT_SEQUENCE
 #define MOAI_LUA_DATA_FORMAT
 #define FIRST_IMAGE
+#define FLATTEN_INTO_PARENT
 //#define ALL_IMAGES
+
 
 using namespace Lua;
 using namespace Tiled;
@@ -121,8 +123,13 @@ void LuaPlugin::writeMap(LuaTableWriter &writer, const Map *map)
     writer.writeKeyAndValue("orientation", orientation);
     writer.writeKeyAndValue("width", map->width());
     writer.writeKeyAndValue("height", map->height());
+#if defined(MOAI_LUA_DATA_FORMAT)
+    writer.writeKeyAndValue("cellwidth", map->tileWidth());
+    writer.writeKeyAndValue("cellheight", map->tileHeight());
+#else
     writer.writeKeyAndValue("tilewidth", map->tileWidth());
     writer.writeKeyAndValue("tileheight", map->tileHeight());
+#endif
     writer.writeKeyAndValue("nextobjectid", map->nextObjectId());
 
     if (map->orientation() == Map::Hexagonal)
@@ -268,10 +275,15 @@ void LuaPlugin::writeTileset(LuaTableWriter &writer, const Tileset *tileset,
     }
 
     const QPoint offset = tileset->tileOffset();
+#if defined(FLATTEN_INTO_PARENT)
+    writer.writeKeyAndValue("xoffset", offset.x());
+    writer.writeKeyAndValue("yoffset", offset.y());
+#else
     writer.writeStartTable("tileoffset");
     writer.writeKeyAndValue("x", offset.x());
     writer.writeKeyAndValue("y", offset.y());
     writer.writeEndTable();
+#endif
 
     writeProperties(writer, tileset->properties());
 
@@ -366,9 +378,7 @@ void LuaPlugin::writeTileLayer(LuaTableWriter &writer,
                 QList<QString> imageSplit = image.split(".");
                 const QString ext = imageSplit.takeLast();
                 const QString fname = imageSplit.takeLast();
-                writer.writeKeyAndValue("fname", fname);
-                writer.writeKeyAndValue("extension", ext);
-                writer.writeKeyAndValue("image", image);
+                writer.writeKeyAndValue("key2tileset", fname.toLatin1() + ext.toLatin1());
             }
         #endif
         #if defined(ALL_IMAGES)
