@@ -215,8 +215,19 @@ static bool includeTile(const Tile *tile)
 void LuaPlugin::writeTileset(LuaTableWriter &writer, const Tileset *tileset,
                              unsigned firstGid)
 {
+#if defined(MOAI_LUA_DATA_FORMAT)
+    if (!tileset->imageSource().isEmpty()) {
+        const QString rel = mMapDir.relativeFilePath(tileset->imageSource()).split("/").takeLast();
+        QList<QString> relSplit = rel.split(".");
+        const QString ext = relSplit.takeLast();
+        const QString fname = relSplit.takeLast();
+        writer.writeStartTable(fname.toLatin1() + ext.toLatin1());
+    } else {
+        writer.writeStartTable();
+    }
+#else
     writer.writeStartTable();
-
+#endif
     writer.writeKeyAndValue("name", tileset->name());
     
     #if !defined(MOAI_LUA_DATA_FORMAT)
@@ -352,6 +363,11 @@ void LuaPlugin::writeTileLayer(LuaTableWriter &writer,
             const QList<Tileset *> usedTilelist = tileLayer->usedTilesets().values();
             if (!usedTilelist.isEmpty() && usedTilelist.size() == ONE) {
                 const QString image = mMapDir.relativeFilePath(usedTilelist.at(ZERO)->imageSource()).split("/").takeLast();
+                QList<QString> imageSplit = image.split(".");
+                const QString ext = imageSplit.takeLast();
+                const QString fname = imageSplit.takeLast();
+                writer.writeKeyAndValue("fname", fname);
+                writer.writeKeyAndValue("extension", ext);
                 writer.writeKeyAndValue("image", image);
             }
         #endif
