@@ -224,11 +224,8 @@ void LuaPlugin::writeTileset(LuaTableWriter &writer, const Tileset *tileset,
 {
 #if defined(MOAI_LUA_DATA_FORMAT)
     if (!tileset->imageSource().isEmpty()) {
-        const QString rel = mMapDir.relativeFilePath(tileset->imageSource()).split("/").takeLast();
-        QList<QString> relSplit = rel.split(".");
-        const QString ext = relSplit.takeLast();
-        const QString fname = relSplit.takeLast();
-        writer.writeStartTable(fname.toLatin1() + ext.toLatin1());
+        const QString image = mMapDir.relativeFilePath(tileset->imageSource()).split("/").takeLast();
+        writer.writeQuotedStartTable(image.toLatin1());
     } else {
         writer.writeStartTable();
     }
@@ -255,12 +252,10 @@ void LuaPlugin::writeTileset(LuaTableWriter &writer, const Tileset *tileset,
     writer.writeKeyAndValue("margin", tileset->margin());
 
     if (!tileset->imageSource().isEmpty()) {
-        #if defined(MOAI_LUA_DATA_FORMAT)
-            const QString rel = mMapDir.relativeFilePath(tileset->imageSource()).split("/").takeLast();
-        #else
+        #if !defined(MOAI_LUA_DATA_FORMAT)
             const QString rel = mMapDir.relativeFilePath(tileset->imageSource());
+            writer.writeKeyAndValue("image", rel);
         #endif
-        writer.writeKeyAndValue("image", rel);
         writer.writeKeyAndValue("imagewidth", tileset->imageWidth());
         writer.writeKeyAndValue("imageheight", tileset->imageHeight());
         #if defined(MOAI_LUA_DATA_FORMAT)
@@ -375,10 +370,8 @@ void LuaPlugin::writeTileLayer(LuaTableWriter &writer,
             const QList<Tileset *> usedTilelist = tileLayer->usedTilesets().values();
             if (!usedTilelist.isEmpty() && usedTilelist.size() == ONE) {
                 const QString image = mMapDir.relativeFilePath(usedTilelist.at(ZERO)->imageSource()).split("/").takeLast();
-                QList<QString> imageSplit = image.split(".");
-                const QString ext = imageSplit.takeLast();
-                const QString fname = imageSplit.takeLast();
-                writer.writeKeyAndValue("key2tileset", fname.toLatin1() + ext.toLatin1());
+                writer.writeKeyAndValue("image", image);
+                //writeQuotedStartTable
             }
         #endif
         #if defined(ALL_IMAGES)
