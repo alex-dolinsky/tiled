@@ -35,6 +35,9 @@
 #include <QFile>
 #include <QCoreApplication>
 
+#define ZERO 0
+#define ONE 1
+
 #if QT_VERSION >= 0x050100
 #define HAS_QSAVEFILE_SUPPORT
 #endif
@@ -305,7 +308,11 @@ void LuaPlugin::writeTileset(LuaTableWriter &writer, const Tileset *tileset,
             continue;
 
         writer.writeStartTable();
-        writer.writeKeyAndValue("id", i);
+#if defined(MOAI_LUA_DATA_FORMAT)
+        writer.writeKeyAndValue("id", i + 1);
+#else
+        writer.writeKeyAndValue("id", i);    
+#endif
 
         if (!tile->properties().isEmpty())
             writeProperties(writer, tile->properties());
@@ -365,13 +372,10 @@ void LuaPlugin::writeTileLayer(LuaTableWriter &writer,
     writer.writeKeyAndValue("name", tileLayer->name());
     #if defined(MOAI_LUA_DATA_FORMAT)
         #if defined(FIRST_IMAGE)
-            #define ZERO 0
-            #define ONE 1
             const QList<Tileset *> usedTilelist = tileLayer->usedTilesets().values();
             if (!usedTilelist.isEmpty() && usedTilelist.size() == ONE) {
                 const QString image = mMapDir.relativeFilePath(usedTilelist.at(ZERO)->imageSource()).split("/").takeLast();
                 writer.writeKeyAndValue("image", image);
-                //writeQuotedStartTable
             }
         #endif
         #if defined(ALL_IMAGES)
@@ -394,6 +398,35 @@ void LuaPlugin::writeTileLayer(LuaTableWriter &writer,
     writeProperties(writer, tileLayer->properties());
 
     writer.writeKeyAndValue("encoding", "lua");
+
+#if defined(MOAI_LUA_DATA_FORMAT)
+    QSet<Tileset*> usedTilesets = tileLayer->usedTilesets();
+    bool authorizeWriteTable = true;
+    for (int y = 0; y < tileLayer->height(); ++y) {
+         for (int x = 0; x < tileLayer->width(); ++x) {
+            foreach (Tileset *tileset, usedTilesets) {
+                                    //writeQuotedKeyAndValue
+                unsigned tileId = mGidMapper.cellToGidOrigin(tileLayer->cellAt(x, y));
+                if(tileId > ZERO && !tileset->tileAt(tileId - 1)->properties().isEmpty()) {
+                    if(authorizeWriteTable) {
+                       writer.writeStartTable("specialtiles");
+                       authorizeWriteTable = false;
+                    }
+                    writer.writeStartTable();
+                    writer.writeKeyAndValue("id", tileId);
+                    writer.writeKeyAndValue("x", x);
+                    writer.writeKeyAndValue("y", y);
+                    writer.writeEndTable();
+                    break;
+                }
+            }
+         }
+    }
+    if(!authorizeWriteTable) {
+        writer.writeEndTable();
+    }
+#endif
+
     writer.writeStartTable("data");
     for (int y = 0; y < tileLayer->height(); ++y) {
         #if defined(MOAI_LUA_DATA_FORMAT)
@@ -419,7 +452,6 @@ void LuaPlugin::writeTileLayer(LuaTableWriter &writer,
         #endif
     }
     writer.writeEndTable();
-
     writer.writeEndTable();
 }
 
