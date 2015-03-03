@@ -414,8 +414,8 @@ void LuaPlugin::writeTileLayer(LuaTableWriter &writer,
                     }
                     writer.writeStartTable();
                     writer.writeKeyAndValue("id", tileId);
-                    writer.writeKeyAndValue("x", x);
-                    writer.writeKeyAndValue("y", y);
+                    writer.writeKeyAndValue("x", x + 1);
+                    writer.writeKeyAndValue("y", y + 1);
                     writer.writeEndTable();
                     break;
                 }
