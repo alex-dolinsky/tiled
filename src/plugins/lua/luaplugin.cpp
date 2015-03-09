@@ -35,9 +35,6 @@
 #include <QFile>
 #include <QCoreApplication>
 
-#define ZERO 0
-#define ONE 1
-
 #if QT_VERSION >= 0x050100
 #define HAS_QSAVEFILE_SUPPORT
 #endif
@@ -373,8 +370,8 @@ void LuaPlugin::writeTileLayer(LuaTableWriter &writer,
     #if defined(MOAI_LUA_DATA_FORMAT)
         #if defined(FIRST_IMAGE)
             const QList<Tileset *> usedTilelist = tileLayer->usedTilesets().values();
-            if (!usedTilelist.isEmpty() && usedTilelist.size() == ONE) {
-                const QString image = mMapDir.relativeFilePath(usedTilelist.at(ZERO)->imageSource()).split("/").takeLast();
+            if (!usedTilelist.isEmpty() && usedTilelist.size() == 1) {
+                const QString image = mMapDir.relativeFilePath(usedTilelist.at(0)->imageSource()).split("/").takeLast();
                 writer.writeKeyAndValue("image", image);
             }
         #endif
@@ -407,7 +404,7 @@ void LuaPlugin::writeTileLayer(LuaTableWriter &writer,
             foreach (Tileset *tileset, usedTilesets) {
                                     //writeQuotedKeyAndValue
                 unsigned tileId = mGidMapper.cellToGidOrigin(tileLayer->cellAt(x, y));
-                if(tileId > ZERO && !tileset->tileAt(tileId - 1)->properties().isEmpty()) {
+                if(tileId > 0 && !tileset->tileAt(tileId - 1)->properties().isEmpty()) {
                     if(authorizeWriteTable) {
                        writer.writeStartTable("specialtiles");
                        authorizeWriteTable = false;

@@ -98,7 +98,6 @@ Cell GidMapper::gidToCell(unsigned gid, bool &ok) const
 
 unsigned GidMapper::cellToGid(const Cell &cell) const
 {
-#define ONE 1
     if (cell.isEmpty())
         return 0;
 
@@ -127,11 +126,10 @@ unsigned GidMapper::cellToGid(const Cell &cell) const
 
 unsigned GidMapper::cellToGidOrigin(const Cell &cell) const
 {
-#define ONE 1
     if (cell.isEmpty())
         return 0;
 
-    unsigned gid = ONE;
+    unsigned gid = 1;
     gid += cell.tile->id();
 
     if (cell.flippedHorizontally)
