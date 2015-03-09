@@ -431,7 +431,7 @@ void LuaPlugin::writeTileLayer(LuaTableWriter &writer,
             writer.setSuppressNewlines(true);
             writer.writeStartTable();
             writer.writeValue(y + 1);
-        #elif
+        #else
             if (y > 0) {
                 writer.prepareNewLine();
             }
