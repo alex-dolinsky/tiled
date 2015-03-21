@@ -402,17 +402,14 @@ void LuaPlugin::writeTileLayer(LuaTableWriter &writer,
     for (int y = 0; y < tileLayer->height(); ++y) {
          for (int x = 0; x < tileLayer->width(); ++x) {
             foreach (Tileset *tileset, usedTilesets) {
-                                    //writeQuotedKeyAndValue
                 unsigned tileId = mGidMapper.cellToGidOrigin(tileLayer->cellAt(x, y));
                 if(tileId > 0 && !tileset->tileAt(tileId - 1)->properties().isEmpty()) {
                     if(authorizeWriteTable) {
                        writer.writeStartTable("specialtiles");
                        authorizeWriteTable = false;
                     }
-                    writer.writeStartTable();
+                    writer.writeQuotedStartTable(QString("x = %1, y = %2").arg(x + 1).arg(y + 1).toLatin1());
                     writer.writeKeyAndValue("id", tileId);
-                    writer.writeKeyAndValue("x", x + 1);
-                    writer.writeKeyAndValue("y", y + 1);
                     writer.writeEndTable();
                     break;
                 }
