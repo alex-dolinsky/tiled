@@ -304,10 +304,10 @@ void LuaPlugin::writeTileset(LuaTableWriter &writer, const Tileset *tileset,
         if (!includeTile(tile))
             continue;
 
-        writer.writeStartTable();
 #if defined(MOAI_LUA_DATA_FORMAT)
-        writer.writeKeyAndValue("id", i + 1);
+        writer.writeQuotedStartTable(QString("id = %1").arg(i + 1).toLatin1());
 #else
+        writer.writeStartTable();
         writer.writeKeyAndValue("id", i);    
 #endif
 
