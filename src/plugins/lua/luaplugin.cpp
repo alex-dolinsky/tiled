@@ -407,8 +407,8 @@ void LuaPlugin::writeTileLayer(LuaTableWriter &writer,
                     if(authorizeWriteTable) {
                        writer.writeStartTable("specialtiles");
                        authorizeWriteTable = false;
-                    }
-                    writer.writeQuotedStartTable(QString("x = %1, y = %2").arg(x + 1).arg(y + 1).toLatin1());
+                    }  // keys are ordered alphabetically!
+                    writer.writeQuotedStartTable(QString("y = %1, x = %2").arg(y + 1).arg(x + 1).toLatin1());
                     writer.writeKeyAndValue("id", tileId);
                     writer.writeEndTable();
                     break;
