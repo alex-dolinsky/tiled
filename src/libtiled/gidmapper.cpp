@@ -112,7 +112,26 @@ unsigned GidMapper::cellToGid(const Cell &cell) const
     if (i == i_end) // tileset not found
         return 0;
 
-    unsigned gid = i.key() + cell.tile->id();
+   unsigned gid = i.key() + cell.tile->id();
+
+    if (cell.flippedHorizontally)
+        gid |= FlippedHorizontallyFlag;
+    if (cell.flippedVertically)
+        gid |= FlippedVerticallyFlag;
+    if (cell.flippedAntiDiagonally)
+        gid |= FlippedAntiDiagonallyFlag;
+
+    return gid;
+}
+
+unsigned GidMapper::cellToGidOrigin(const Cell &cell) const
+{
+    if (cell.isEmpty())
+        return 0;
+
+    unsigned gid = 1;
+    gid += cell.tile->id();
+
     if (cell.flippedHorizontally)
         gid |= FlippedHorizontallyFlag;
     if (cell.flippedVertically)

@@ -81,6 +81,11 @@ public:
     unsigned cellToGid(const Cell &cell) const;
 
     /**
+     * Overrides any firstGid with 1.
+     */
+    unsigned cellToGidOrigin(const Cell &cell) const;
+
+    /**
      * This sets the original tileset width. In case the image size has
      * changed, the tile indexes will be adjusted automatically when using
      * gidToCell().

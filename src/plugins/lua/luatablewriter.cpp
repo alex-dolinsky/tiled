@@ -73,6 +73,17 @@ void LuaTableWriter::writeStartTable(const QByteArray &name)
     m_valueWritten = false;
 }
 
+void LuaTableWriter::writeQuotedStartTable(const QByteArray &name)
+{
+    prepareNewLine();
+    write('[');
+    write(quote(name).toUtf8());
+    write("] = {");
+    ++m_indent;
+    m_newLine = false;
+    m_valueWritten = false;
+}
+
 void LuaTableWriter::writeEndTable()
 {
     --m_indent;
