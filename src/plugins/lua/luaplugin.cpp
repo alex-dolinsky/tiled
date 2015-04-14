@@ -169,19 +169,21 @@ void LuaPlugin::writeMap(LuaTableWriter &writer, const Map *map)
     }
     writer.writeEndTable();
 
+    unsigned short prio = 1;
     writer.writeStartTable("layers");
     foreach (const Layer *layer, map->layers()) {
         switch (layer->layerType()) {
         case Layer::TileLayerType:
-            writeTileLayer(writer, static_cast<const TileLayer*>(layer));
+            writeTileLayer(prio, writer, static_cast<const TileLayer*>(layer));
             break;
         case Layer::ObjectGroupType:
-            writeObjectGroup(writer, static_cast<const ObjectGroup*>(layer));
+            writeObjectGroup(prio, writer, static_cast<const ObjectGroup*>(layer));
             break;
         case Layer::ImageLayerType:
-            writeImageLayer(writer, static_cast<const ImageLayer*>(layer));
+            writeImageLayer(prio, writer, static_cast<const ImageLayer*>(layer));
             break;
         }
+        prio++;
     }
     writer.writeEndTable();
 
@@ -338,7 +340,7 @@ void LuaPlugin::writeTileset(LuaTableWriter &writer, const Tileset *tileset,
             writer.writeKeyAndValue("probability", tile->terrainProbability());
 
         if (ObjectGroup *objectGroup = tile->objectGroup())
-            writeObjectGroup(writer, objectGroup, "objectGroup");
+            writeObjectGroup(0, writer, objectGroup, "objectGroup");
 
         if (tile->isAnimated()) {
             const QVector<Frame> &frames = tile->frames();
@@ -359,14 +361,22 @@ void LuaPlugin::writeTileset(LuaTableWriter &writer, const Tileset *tileset,
 
     writer.writeEndTable(); // tileset
 }
-
+#if defined(MOAI_LUA_DATA_FORMAT)
+void LuaPlugin::writeTileLayer(unsigned short prio,
+                               LuaTableWriter &writer,
+                               const TileLayer *tileLayer)
+{
+    writer.writeQuotedStartTable(tileLayer->name().toLatin1());
+    writer.writeKeyAndValue("prio", prio);
+#else
 void LuaPlugin::writeTileLayer(LuaTableWriter &writer,
                                const TileLayer *tileLayer)
 {
     writer.writeStartTable();
+    writer.writeKeyAndValue("name", tileLayer->name());
+#endif
 
     writer.writeKeyAndValue("type", "tilelayer");
-    writer.writeKeyAndValue("name", tileLayer->name());
     #if defined(MOAI_LUA_DATA_FORMAT)
         #if defined(FIRST_IMAGE)
             const QList<Tileset *> usedTilelist = tileLayer->usedTilesets().values();
@@ -449,6 +459,17 @@ void LuaPlugin::writeTileLayer(LuaTableWriter &writer,
     writer.writeEndTable();
 }
 
+#if defined(MOAI_LUA_DATA_FORMAT)
+void LuaPlugin::writeObjectGroup(unsigned short prio,
+                                 LuaTableWriter &writer,
+                                 const ObjectGroup *objectGroup,
+                                 const QByteArray &key)
+{
+    writer.writeQuotedStartTable(objectGroup->name().toLatin1());
+    if (! (prio == 0)) {
+        writer.writeKeyAndValue("prio", prio);
+    }
+#else
 void LuaPlugin::writeObjectGroup(LuaTableWriter &writer,
                                  const ObjectGroup *objectGroup,
                                  const QByteArray &key)
@@ -457,28 +478,9 @@ void LuaPlugin::writeObjectGroup(LuaTableWriter &writer,
         writer.writeStartTable();
     else
         writer.writeStartTable(key);
-
-    writer.writeKeyAndValue("type", "objectgroup");
     writer.writeKeyAndValue("name", objectGroup->name());
-#if defined(MOAI_LUA_DATA_FORMAT)
-    #if defined(FIRST_IMAGE)
-        const QList<Tileset *> usedTilelist = objectGroup->usedTilesets().values();
-        if (!usedTilelist.isEmpty() && usedTilelist.size() == 1) {
-            const QString image = mMapDir.relativeFilePath(usedTilelist.at(0)->imageSource()).split("/").takeLast();
-            writer.writeKeyAndValue("image", image);
-        }
-    #endif
-    #if defined(ALL_IMAGES)
-        writer.writeStartTable("images");
-        const QSet<Tileset *> usedTilesets = tileLayer->usedTilesets();
-        if (!usedTilesets.empty())
-            foreach (const Tileset * tileset, usedTilesets) {
-                const QString fileId = mMapDir.relativeFilePath(tileset->imageSource()).split("/").takeLast();
-                writer.writeValue(fileId);
-            }
-        writer.writeEndTable();
-    #endif
 #endif
+    writer.writeKeyAndValue("type", "objectgroup");
     writer.writeKeyAndValue("visible", objectGroup->isVisible());
     writer.writeKeyAndValue("opacity", objectGroup->opacity());
     writeProperties(writer, objectGroup->properties());
@@ -491,13 +493,22 @@ void LuaPlugin::writeObjectGroup(LuaTableWriter &writer,
     writer.writeEndTable();
 }
 
+#if defined(MOAI_LUA_DATA_FORMAT)
+void LuaPlugin::writeImageLayer(unsigned short prio,
+                                LuaTableWriter &writer,
+                                const ImageLayer *imageLayer)
+{
+    writer.writeQuotedStartTable(imageLayer->name().toLatin1());
+    writer.writeKeyAndValue("prio", prio);
+#elif
 void LuaPlugin::writeImageLayer(LuaTableWriter &writer,
                                 const ImageLayer *imageLayer)
 {
     writer.writeStartTable();
+    writer.writeKeyAndValue("name", imageLayer->name());
+#endif
 
     writer.writeKeyAndValue("type", "imagelayer");
-    writer.writeKeyAndValue("name", imageLayer->name());
     writer.writeKeyAndValue("x", imageLayer->x());
     writer.writeKeyAndValue("y", imageLayer->y());
     writer.writeKeyAndValue("visible", imageLayer->isVisible());
